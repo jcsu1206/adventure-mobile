@@ -29,8 +29,11 @@ jobs:
       - name: Apply mobile changes
         working-directory: game
         run: |
-          mkdir -p scripts/mobile
+          mkdir -p scripts/mobile fonts
           cp ../mobile/touch_controls.gd scripts/mobile/
+          # Chinese font (OFL license) - the engine's built-in font has no CJK glyphs.
+          curl -sSL -o fonts/NotoSansTC-Regular.ttf "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf"
+          test -s fonts/NotoSansTC-Regular.ttf
           cp ../mobile/export_presets.cfg .
           python3 ../mobile/patch.py
       - name: Install Godot and web export templates

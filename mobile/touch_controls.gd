@@ -28,6 +28,7 @@ var top_buttons := [
 ]
 var _all := []
 var _pressed := {}
+var _font := preload("res://fonts/NotoSansTC-Regular.ttf")
 
 func _ready() -> void:
     layer = 100
@@ -136,7 +137,7 @@ func _process(_d: float) -> void:
 
 func _on_draw() -> void:
     var s := _scale()
-    var font := ThemeDB.fallback_font
+    var font := _font
     if _joy_index != -1:
         _pad.draw_circle(_joy_origin, JOY_R * s, Color(1,1,1,0.12))
         _pad.draw_arc(_joy_origin, JOY_R * s, 0, TAU, 48, Color(1,1,1,0.5), 3.0 * s)

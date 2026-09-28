@@ -27,6 +27,11 @@ reps=[('config/features=PackedStringArray("4.7", "Forward Plus")','config/featur
 for x,y in reps:
     assert x in s, x
     s=s.replace(x,y)
+# NavcorX mobile: the engine's built-in font has no Chinese glyphs (translated
+# text was rendering as blank tofu boxes) - point the whole project at a
+# bundled Chinese font instead.
+s += '\n[gui]\n\ntheme/custom_font="res://fonts/NotoSansTC-Regular.ttf"\n'
+open(p,'w').write(s)
 # NavcorX mobile: translate the game's own menu text to Chinese.
 p='prefabs/UI/menu_rest.tscn'
 s=open(p).read()

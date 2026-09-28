@@ -61,7 +61,10 @@ jobs:
           for f in wasm.part* pck.part*; do mv "$f" "$f.bin"; done
           cp ../build/index.js ../build/index.audio.worklet.js ../build/index.audio.position.worklet.js .
           touch .nojekyll
-          list() { ls $1.part*.bin | sort | python3 -c "import sys,json;print(json.dumps([l.strip() for l in sys.stdin]))"; }
+          # Cache-bust: part filenames are the same on every build, so phones/CDN can
+          # keep serving an old cached copy forever. Tag each URL with this build's
+          # commit so a new build always forces a fresh download.
+          list() { ls $1.part*.bin | sort | python3 -c "import sys,json;v='$GITHUB_SHA'[:7];print(json.dumps([l.strip()+'?v='+v for l in sys.stdin]))"; }
           GZ=$(cat *.part*.bin | wc -c)
           sed -e "s/__WASM_PARTS__/$(list wasm)/" -e "s/__PCK_PARTS__/$(list pck)/" \
               -e "s/__WASM_SIZE__/$(stat -c %s ../build/index.wasm)/g" -e "s/__PCK_SIZE__/$(stat -c %s ../build/index.pck)/g" \

@@ -32,15 +32,16 @@ jobs:
           mkdir -p scripts/mobile fonts
           cp ../mobile/touch_controls.gd ../mobile/brightness_fix.gd scripts/mobile/
           # Chinese font (OFL license) - the engine's built-in font has no CJK glyphs.
-          curl -sSL -o fonts/NotoSansTC-Regular.ttf "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf"
+          # --retry: this curl briefly failed once before with no useful log output, so retry a flaky network blip instead of failing the whole build.
+          curl -sSL --retry 3 --retry-delay 3 -o fonts/NotoSansTC-Regular.ttf "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf"
           test -s fonts/NotoSansTC-Regular.ttf
           cp ../mobile/export_presets.cfg .
           python3 ../mobile/patch.py
       - name: Install Godot and web export templates
         run: |
-          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/$GODOT/Godot_v${GODOT}_linux.x86_64.zip"
+          curl -sSL --retry 3 --retry-delay 3 -o godot.zip "https://github.com/godotengine/godot/releases/download/$GODOT/Godot_v${GODOT}_linux.x86_64.zip"
           unzip -q godot.zip && mv "Godot_v${GODOT}_linux.x86_64" godot
-          curl -sSL -o tpl.tpz "https://github.com/godotengine/godot/releases/download/$GODOT/Godot_v${GODOT}_export_templates.tpz"
+          curl -sSL --retry 3 --retry-delay 3 -o tpl.tpz "https://github.com/godotengine/godot/releases/download/$GODOT/Godot_v${GODOT}_export_templates.tpz"
           D="$HOME/.local/share/godot/export_templates/${GODOT/-/.}"
           mkdir -p "$D"
           unzip -q -j tpl.tpz templates/web_nothreads_release.zip templates/web_nothreads_debug.zip templates/version.txt -d "$D"

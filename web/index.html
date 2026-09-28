@@ -75,12 +75,16 @@
     cache[name] = await new Response(ds).arrayBuffer();
   }
 
+  window.addEventListener('error', function(e){ status.textContent = '錯誤：' + (e.message || e); });
+  window.addEventListener('unhandledrejection', function(e){ if (String(e.reason).indexOf('Pointer Lock') >= 0) return; status.textContent = '錯誤：' + (e.reason && e.reason.message ? e.reason.message : e.reason); });
+
   const realFetch = window.fetch.bind(window);
   window.fetch = function(input, init){
     const url = typeof input === 'string' ? input : input.url;
     const key = Object.keys(PARTS).find(k => url.split('?')[0].endsWith(k));
     if (key && cache[key]) {
-      return Promise.resolve(new Response(cache[key].slice(0), { status:200, headers:{ 'Content-Type': key.endsWith('wasm') ? 'application/wasm' : 'application/octet-stream', 'Content-Length': String(SIZES[key]) } }));
+      const buf = cache[key]; delete cache[key];
+      return Promise.resolve(new Response(buf, { status:200, headers:{ 'Content-Type': key.endsWith('wasm') ? 'application/wasm' : 'application/octet-stream', 'Content-Length': String(SIZES[key]) } }));
     }
     return realFetch(input, init);
   };
@@ -101,13 +105,16 @@
   })();
 
   go.addEventListener('click', function(){
-    go.disabled = true; go.textContent = '啟動中…'; status.textContent = '正在啟動遊戲引擎';
-    document.body.classList.add('playing');
+    go.disabled = true; go.textContent = '啟動中…'; status.textContent = '正在啟動遊戲引擎，約 10～30 秒，請不要離開';
+    const slow = setTimeout(function(){ status.textContent = '啟動比平常久，再等一下…如果超過 1 分鐘沒反應，請截圖給我們'; }, 45000);
     engine.startGame({
       onProgress: function(cur, tot){ if (tot > 0) status.textContent = '載入 ' + Math.round(cur/tot*100) + '%'; }
     }).then(function(){
+      clearTimeout(slow);
+      document.body.classList.add('playing');
       document.getElementById('veil').hidden = true;
     }).catch(function(err){
+      clearTimeout(slow);
       document.getElementById('veil').hidden = false;
       document.body.classList.remove('playing');
       status.textContent = '啟動失敗：' + (err && err.message ? err.message : err);

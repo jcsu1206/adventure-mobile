@@ -108,4 +108,20 @@ for x,y in reps:
     s=s.replace(x,y)
 open(p,'w').write(s)
 
+# NavcorX mobile: the shared Menu base class overwrites close_button.text with
+# hardcoded English "Back"/"Quit" at runtime, silently undoing the .tscn edits
+# above for every menu's close/back button - fix it at the source instead.
+p='scripts/UI/menu.gd'
+s=open(p).read()
+a="""\t\tif is_instance_valid(parent_menu):
+\t\t\tclose_button.text = "Back"
+\t\telse:
+\t\t\tclose_button.text = "Quit\""""
+b="""\t\tif is_instance_valid(parent_menu):
+\t\t\tclose_button.text = "返回"
+\t\telse:
+\t\t\tclose_button.text = "結束遊戲\""""
+assert a in s; s=s.replace(a,b)
+open(p,'w').write(s)
+
 print("patched")

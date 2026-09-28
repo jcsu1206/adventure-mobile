@@ -16,15 +16,15 @@ const JOY_R := 110.0
 
 # id, label, action, offset from bottom-right (in px of a 1080-high screen), radius
 var buttons := [
-    {"label":"ATK",   "action":"p1_attack_light", "off":Vector2(-170,-170), "r":85.0},
-    {"label":"JUMP",  "action":"p1_jump",         "off":Vector2(-360,-110), "r":65.0},
-    {"label":"ROLL",  "action":"p1_dodge",        "off":Vector2(-150,-370), "r":65.0},
-    {"label":"GUARD", "action":"p1_block",        "off":Vector2(-340,-290), "r":55.0},
-    {"label":"USE",   "action":"p1_event_action", "off":Vector2(-520,-120), "r":50.0},
+    {"label":"攻擊", "action":"p1_attack_light", "off":Vector2(-170,-170), "r":85.0},
+    {"label":"跳",   "action":"p1_jump",         "off":Vector2(-360,-110), "r":65.0},
+    {"label":"翻滾", "action":"p1_dodge",        "off":Vector2(-150,-370), "r":65.0},
+    {"label":"防禦", "action":"p1_block",        "off":Vector2(-340,-290), "r":55.0},
+    {"label":"使用", "action":"p1_event_action", "off":Vector2(-520,-120), "r":50.0},
 ]
 var top_buttons := [
-    {"label":"MENU", "action":"p1_start",     "off":Vector2(-90, 80), "r":45.0},
-    {"label":"LOCK", "action":"p1_look_lock", "off":Vector2(-210, 80), "r":45.0},
+    {"label":"選單", "action":"p1_start",     "off":Vector2(-90, 80), "r":45.0},
+    {"label":"鎖定", "action":"p1_look_lock", "off":Vector2(-210, 80), "r":45.0},
 ]
 var _all := []
 var _pressed := {}
@@ -145,7 +145,7 @@ func _on_draw() -> void:
     else:
         var hint := Vector2(330, _pad.size.y / s - 420) * s
         _pad.draw_arc(hint, JOY_R * s, 0, TAU, 48, Color(1,1,1,0.25), 3.0 * s)
-        _pad.draw_string(font, hint + Vector2(-40, 10) * s, "MOVE", HORIZONTAL_ALIGNMENT_LEFT, -1, int(26 * s), Color(1,1,1,0.5))
+        _pad.draw_string(font, hint + Vector2(-40, 10) * s, "移動", HORIZONTAL_ALIGNMENT_LEFT, -1, int(26 * s), Color(1,1,1,0.5))
     for i in _all.size():
         var b = _all[i]
         var c := _btn_center(b)

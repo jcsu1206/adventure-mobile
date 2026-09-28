@@ -43,8 +43,8 @@
     <div class="keys">
       <b>左手</b>：按住左邊任何地方拖動 = 走路<br>
       <b>右手</b>：在右邊空白處滑動 = 轉鏡頭<br>
-      <b>ATK</b> 攻擊・<b>JUMP</b> 跳・<b>ROLL</b> 點一下翻滾／按住跑步<br>
-      <b>GUARD</b> 防禦・<b>USE</b> 開門撿東西・<b>LOCK</b> 鎖定敵人・<b>MENU</b> 選單
+      <b>攻擊</b>・<b>跳</b>・<b>翻滾</b>點一下／按住跑步<br>
+      <b>防禦</b>・<b>使用</b>開門撿東西・<b>鎖定</b>敵人・<b>選單</b>
     </div>
     <div class="credit">原作 <a href="https://github.com/EasterEggProductions/adventure-mode-godot" target="_blank" rel="noopener">Adventure Mode</a> by Easter Egg Productions（程式 MIT、美術 CC-BY 4.0）・觸控版改作 NavcorX</div>
   </div>
@@ -89,8 +89,8 @@
     return realFetch(input, init);
   };
 
-  // Phones and tablets report 2-3x pixel density; rendering at that size runs out of memory. Render at 1x.
-  try { Object.defineProperty(window, 'devicePixelRatio', { get: function(){ return 1; }, configurable: true }); } catch(e) {}
+  // Phones and tablets report 2-3x pixel density; rendering at full size runs out of memory. Cap it lower.
+  try { Object.defineProperty(window, 'devicePixelRatio', { get: function(){ return 1.25; }, configurable: true }); } catch(e) {}
 
   const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":__PCK_SIZE__,"index.wasm":__WASM_SIZE__},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
   const engine = new Engine(GODOT_CONFIG);

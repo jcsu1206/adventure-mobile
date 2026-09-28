@@ -21,7 +21,9 @@ reps=[('config/features=PackedStringArray("4.7", "Forward Plus")','config/featur
 ('FAM="*uid://br1uu1gltkc33"','FAM="*uid://br1uu1gltkc33"\nTouchControls="*res://scripts/mobile/touch_controls.gd"'),
 ('window/stretch/mode="viewport"','window/stretch/mode="canvas_items"'),
 ('window/size/always_on_top=true\n',''),
-('[rendering]\n','[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"\nscaling_3d/scale=0.6\n')]
+('[rendering]\n','[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"\nscaling_3d/scale=0.6\nlights_and_shadows/directional_shadow/size=1024\nlights_and_shadows/directional_shadow/size.mobile=1024\nlights_and_shadows/positional_shadow/atlas_size=1024\nlights_and_shadows/positional_shadow/atlas_size.mobile=1024\n'),
+# Phones: stream audio instead of decoding every sound fully into memory (the web default); this was crashing iPad Safari.
+('buses/default_bus_layout="res://art/audio/default_bus_layout.tres"\n','buses/default_bus_layout="res://art/audio/default_bus_layout.tres"\ngeneral/default_playback_type.web=0\n')]
 for x,y in reps:
     assert x in s, x
     s=s.replace(x,y)

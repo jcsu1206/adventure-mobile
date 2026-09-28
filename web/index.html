@@ -89,6 +89,9 @@
     return realFetch(input, init);
   };
 
+  // Phones and tablets report 2-3x pixel density; rendering at that size runs out of memory. Render at 1x.
+  try { Object.defineProperty(window, 'devicePixelRatio', { get: function(){ return 1; }, configurable: true }); } catch(e) {}
+
   const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":__PCK_SIZE__,"index.wasm":__WASM_SIZE__},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
   const engine = new Engine(GODOT_CONFIG);
 

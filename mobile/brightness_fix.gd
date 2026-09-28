@@ -12,7 +12,9 @@ func _ready() -> void:
 	get_tree().node_added.connect(_on_node_added)
 
 func _on_node_added(node: Node) -> void:
-	if node is WorldEnvironment and is_instance_valid(node.environment):
-		var env := node.environment
-		env.tonemap_exposure *= 1.8
-		env.ambient_light_energy = max(env.ambient_light_energy, 1.0) * 1.8
+	if node is WorldEnvironment:
+		var world_env := node as WorldEnvironment
+		var env : Environment = world_env.environment
+		if is_instance_valid(env):
+			env.tonemap_exposure *= 1.8
+			env.ambient_light_energy = max(env.ambient_light_energy, 1.0) * 1.8

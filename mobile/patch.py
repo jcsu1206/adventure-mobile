@@ -18,7 +18,7 @@ open(p,'w').write(s)
 p='project.godot'
 s=open(p).read()
 reps=[('config/features=PackedStringArray("4.7", "Forward Plus")','config/features=PackedStringArray("4.7", "GL Compatibility")'),
-('FAM="*uid://br1uu1gltkc33"','FAM="*uid://br1uu1gltkc33"\nTouchControls="*res://scripts/mobile/touch_controls.gd"'),
+('FAM="*uid://br1uu1gltkc33"','FAM="*uid://br1uu1gltkc33"\nTouchControls="*res://scripts/mobile/touch_controls.gd"\nBrightnessFix="*res://scripts/mobile/brightness_fix.gd"'),
 ('window/stretch/mode="viewport"','window/stretch/mode="canvas_items"'),
 ('window/size/always_on_top=true\n',''),
 ('[rendering]\n','[rendering]\n\nrenderer/rendering_method="gl_compatibility"\nrenderer/rendering_method.mobile="gl_compatibility"\nscaling_3d/scale=0.75\nlights_and_shadows/directional_shadow/size=1024\nlights_and_shadows/directional_shadow/size.mobile=1024\nlights_and_shadows/positional_shadow/atlas_size=1024\nlights_and_shadows/positional_shadow/atlas_size.mobile=1024\n'),
@@ -116,11 +116,11 @@ s=open(p).read()
 a="""\t\tif is_instance_valid(parent_menu):
 \t\t\tclose_button.text = "Back"
 \t\telse:
-\t\t\tclose_button.text = "Quit\""""
+\t\t\tclose_button.text = "Quit\"\"\"
 b="""\t\tif is_instance_valid(parent_menu):
 \t\t\tclose_button.text = "返回"
 \t\telse:
-\t\t\tclose_button.text = "結束遊戲\""""
+\t\t\tclose_button.text = "結束遊戲\"\"\"
 assert a in s; s=s.replace(a,b)
 open(p,'w').write(s)
 

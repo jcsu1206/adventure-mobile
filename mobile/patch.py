@@ -87,4 +87,20 @@ for x,y in reps:
     s=s.replace(x,y)
 open(p,'w').write(s)
 
+p='scenes/title_scene.tscn'
+s=open(p).read()
+reps=[('text = "Start"','text = "開始遊戲"'),
+('text = "World Test"','text = "世界測試"'),
+('text = "Dungeon Test"','text = "地城測試"'),
+('text = "Host Online"','text = "建立連線"'),
+('text = "Online"','text = "連線"'),
+('text = "Options"','text = "設定"'),
+('text = "Quit"','text = "結束遊戲"'),
+('text = "[center][b][font_size=20]DEBUG OPTIONS[/font_size][/b][/center]"','text = "[center][b][font_size=20]除錯選項[/font_size][/b][/center]"'),
+('text = "[center][font_size=14]Level Select[/font_size][/center]"','text = "[center][font_size=14]選擇關卡[/font_size][/center]"')]
+for x,y in reps:
+    assert x in s, x
+    s=s.replace(x,y)
+open(p,'w').write(s)
+
 print("patched")

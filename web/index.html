@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>冒險模式 Mobile</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  :root { color-scheme: dark; --bg:#0d1210; --ink:#e9efe6; --dim:#8fa197; --moss:#6fae5a; --gold:#c9a34a; --line:#2a3530; }
+  html, body { height:100%; background:var(--bg); color:var(--ink); overflow:hidden; touch-action:none; -webkit-user-select:none; user-select:none; }
+  body { font-family:"Noto Sans TC", system-ui, sans-serif; }
+  [hidden] { display:none !important; }
+  #canvas { position:fixed; inset:0; width:100vw; height:100vh; display:block; background:#000; }
+  #canvas:focus { outline:none; }
+  #veil { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:0 16px; background:radial-gradient(ellipse at 50% 70%, #1b2a20 0%, var(--bg) 70%); z-index:5; }
+  .card { width:min(420px,100%); display:flex; flex-direction:column; gap:14px; text-align:center; }
+  h1 { margin:0; font-size:30px; font-weight:700; letter-spacing:.06em; color:var(--gold); text-wrap:balance; }
+  .sub { margin:0; color:var(--dim); font-size:14px; line-height:1.6; }
+  .bar { height:8px; border-radius:4px; background:var(--line); overflow:hidden; }
+  .bar i { display:block; height:100%; width:0%; background:var(--moss); transition:width .2s; }
+  #status { font-size:13px; color:var(--dim); font-variant-numeric:tabular-nums; min-height:1.4em; }
+  #go { font:inherit; font-size:18px; font-weight:500; padding:14px 20px; border-radius:12px; border:1px solid var(--gold); background:var(--gold); color:#1a1406; cursor:pointer; }
+  #go:disabled { background:transparent; color:var(--dim); border-color:var(--line); }
+  #go:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
+  .keys { font-size:12px; color:var(--dim); line-height:1.7; text-align:left; border-top:1px solid var(--line); padding-top:10px; }
+  .keys b { color:var(--ink); font-weight:500; }
+  .credit { font-size:11px; color:var(--dim); }
+  .credit a { color:var(--dim); }
+  #rotate { position:fixed; inset:0; z-index:9; display:none; align-items:center; justify-content:center; background:var(--bg); padding:0 16px; text-align:center; font-size:18px; line-height:1.7; }
+  @media (orientation: portrait) { body.playing #rotate { display:flex; } }
+</style>
+</head>
+<body>
+<canvas id="canvas" tabindex="-1">你的瀏覽器不支援 HTML5 canvas。</canvas>
+
+<div id="veil">
+  <div class="card">
+    <h1>冒險模式</h1>
+    <p class="sub">3D 動作冒險・手機觸控版<br>請把手機轉成橫的玩</p>
+    <div class="bar" aria-hidden="true"><i id="fill"></i></div>
+    <div id="status" role="status">準備下載遊戲（約 __GZ_MB__ MB）…</div>
+    <button id="go" type="button" disabled>下載中…</button>
+    <div class="keys">
+      <b>左手</b>：按住左邊任何地方拖動 = 走路<br>
+      <b>右手</b>：在右邊空白處滑動 = 轉鏡頭<br>
+      <b>ATK</b> 攻擊・<b>JUMP</b> 跳・<b>ROLL</b> 點一下翻滾／按住跑步<br>
+      <b>GUARD</b> 防禦・<b>USE</b> 開門撿東西・<b>LOCK</b> 鎖定敵人・<b>MENU</b> 選單
+    </div>
+    <div class="credit">原作 <a href="https://github.com/EasterEggProductions/adventure-mode-godot" target="_blank" rel="noopener">Adventure Mode</a> by Easter Egg Productions（程式 MIT、美術 CC-BY 4.0）・觸控版改作 NavcorX</div>
+  </div>
+</div>
+
+<div id="rotate">請把手機轉成橫的<br>↻</div>
+
+<script src="index.js"></script>
+<script>
+(function(){
+  const PARTS = { 'index.wasm':__WASM_PARTS__, 'index.pck':__PCK_PARTS__ };
+  const SIZES = { 'index.pck':__PCK_SIZE__, 'index.wasm':__WASM_SIZE__ };
+  const fill = document.getElementById('fill'), status = document.getElementById('status'), go = document.getElementById('go');
+  const cache = {};
+  let got = 0; const total = __GZ_TOTAL__;
+
+  async function download(name){
+    const bufs = [];
+    for (const p of PARTS[name]) {
+      const r = await fetch(p);
+      if (!r.ok) throw new Error(p + ' ' + r.status);
+      const reader = r.body.getReader();
+      for(;;){ const {done, value} = await reader.read(); if (done) break; bufs.push(value); got += value.length;
+        const pct = Math.min(100, got/total*100); fill.style.width = pct.toFixed(1)+'%'; status.textContent = '下載中 ' + Math.round(pct) + '%'; }
+    }
+    const blob = new Blob(bufs);
+    const ds = blob.stream().pipeThrough(new DecompressionStream('gzip'));
+    cache[name] = await new Response(ds).arrayBuffer();
+  }
+
+  const realFetch = window.fetch.bind(window);
+  window.fetch = function(input, init){
+    const url = typeof input === 'string' ? input : input.url;
+    const key = Object.keys(PARTS).find(k => url.split('?')[0].endsWith(k));
+    if (key && cache[key]) {
+      return Promise.resolve(new Response(cache[key].slice(0), { status:200, headers:{ 'Content-Type': key.endsWith('wasm') ? 'application/wasm' : 'application/octet-stream', 'Content-Length': String(SIZES[key]) } }));
+    }
+    return realFetch(input, init);
+  };
+
+  const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":__PCK_SIZE__,"index.wasm":__WASM_SIZE__},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+  const engine = new Engine(GODOT_CONFIG);
+
+  (async function(){
+    try {
+      await download('index.wasm');
+      await download('index.pck');
+      status.textContent = '下載完成';
+      go.disabled = false; go.textContent = '開始遊戲';
+    } catch(e) {
+      status.textContent = '下載失敗，請重新整理頁面再試一次（' + e.message + '）';
+      go.textContent = '無法開始';
+    }
+  })();
+
+  go.addEventListener('click', function(){
+    go.disabled = true; go.textContent = '啟動中…'; status.textContent = '正在啟動遊戲引擎';
+    document.body.classList.add('playing');
+    engine.startGame({
+      onProgress: function(cur, tot){ if (tot > 0) status.textContent = '載入 ' + Math.round(cur/tot*100) + '%'; }
+    }).then(function(){
+      document.getElementById('veil').hidden = true;
+    }).catch(function(err){
+      document.getElementById('veil').hidden = false;
+      document.body.classList.remove('playing');
+      status.textContent = '啟動失敗：' + (err && err.message ? err.message : err);
+      go.textContent = '無法開始';
+    });
+  });
+})();
+</script>
+</body>
+</html>

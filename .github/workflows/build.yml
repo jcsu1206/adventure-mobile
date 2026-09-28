@@ -1,0 +1,74 @@
+name: Build and deploy phone web version
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+env:
+  GODOT: "4.7-stable"
+  UPSTREAM: "EasterEggProductions/adventure-mode-godot"
+  UPSTREAM_SHA: "73a374c13f35f34757c38dfc1a0d9d240c42bcc3"
+  CONSOLE_SHA: "8615c81851900a884d2db82a44da740067ecb0eb"
+  DRESSUP_SHA: "546761bb2146fddfa5c3c1ba3fc38ba86ca93f25"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get upstream game and addons
+        run: |
+          fetch() { mkdir -p "$2" && cd "$2" && git init -q && git fetch -q --depth 1 "https://github.com/$1" "$3" && git checkout -q FETCH_HEAD && cd - >/dev/null; }
+          fetch "$UPSTREAM" game "$UPSTREAM_SHA"
+          fetch EasterEggProductions/godot-eep-game-console console "$CONSOLE_SHA"
+          fetch EasterEggProductions/godot-dress-up dressup "$DRESSUP_SHA"
+          cp -r console/addons/EEP_Console console/addons/EEP_FeatherAudioManager dressup/addons/EEP_DressUp game/addons/
+      - name: Apply mobile changes
+        working-directory: game
+        run: |
+          mkdir -p scripts/mobile
+          cp ../mobile/touch_controls.gd scripts/mobile/
+          cp ../mobile/export_presets.cfg .
+          python3 ../mobile/patch.py
+      - name: Install Godot and web export templates
+        run: |
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/$GODOT/Godot_v${GODOT}_linux.x86_64.zip"
+          unzip -q godot.zip && mv "Godot_v${GODOT}_linux.x86_64" godot
+          curl -sSL -o tpl.tpz "https://github.com/godotengine/godot/releases/download/$GODOT/Godot_v${GODOT}_export_templates.tpz"
+          D="$HOME/.local/share/godot/export_templates/${GODOT/-/.}"
+          mkdir -p "$D"
+          unzip -q -j tpl.tpz templates/web_nothreads_release.zip templates/web_nothreads_debug.zip templates/version.txt -d "$D"
+          rm tpl.tpz
+      - name: Export web build
+        working-directory: game
+        run: |
+          timeout 1200 ../godot --headless --editor --quit || true
+          mkdir -p ../build
+          ../godot --headless --export-release "Web" ../build/index.html || true
+          ls -la ../build
+          test -s ../build/index.pck && test -s ../build/index.wasm
+      - name: Pack for phones (gzip + chunks)
+        run: |
+          mkdir site && cd site
+          gzip -9 -c ../build/index.wasm > w.gz && split -b 14000000 -d -a 1 w.gz wasm.part && rm w.gz
+          gzip -9 -c ../build/index.pck  > p.gz && split -b 14000000 -d -a 1 p.gz pck.part  && rm p.gz
+          for f in wasm.part* pck.part*; do mv "$f" "$f.bin"; done
+          cp ../build/index.js ../build/index.audio.worklet.js ../build/index.audio.position.worklet.js .
+          touch .nojekyll
+          list() { ls $1.part*.bin | sort | python3 -c "import sys,json;print(json.dumps([l.strip() for l in sys.stdin]))"; }
+          GZ=$(cat *.part*.bin | wc -c)
+          sed -e "s/__WASM_PARTS__/$(list wasm)/" -e "s/__PCK_PARTS__/$(list pck)/" \
+              -e "s/__WASM_SIZE__/$(stat -c %s ../build/index.wasm)/g" -e "s/__PCK_SIZE__/$(stat -c %s ../build/index.pck)/g" \
+              -e "s/__GZ_TOTAL__/$GZ/" -e "s/__GZ_MB__/$((GZ/1000000))/" ../web/index.html > index.html
+          ! grep -n "__[A-Z_]*__" index.html
+          ls -la
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          force_orphan: true
+          enable_jekyll: false
